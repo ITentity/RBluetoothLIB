@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">RBluetoothLIB</string>
+    <string name="scan">scan</string>
+    <string name="begin_scan">Begin Scan</string>
+    <string name="star_scan">scan</string>
+    <string name="end_scan">stop</string>
+    <string name="connect">connect</string>
+    <string name="stop_connect">stop connect</string>
+    <string name="ble_not_supported">bluetooth not supported</string>
+    <string name="scan_type">bluetooth_type</string>
 </resources>

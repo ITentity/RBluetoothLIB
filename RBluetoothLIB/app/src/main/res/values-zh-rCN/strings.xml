@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">RBluetoothLIB</string>
+    <string name="scan">扫描设备</string>
+    <string name="begin_scan">开始扫描</string>
+    <string name="star_scan">扫描</string>
+    <string name="end_scan">停止</string>
+    <string name="connect">连接</string>
+    <string name="stop_connect">断开连接</string>
+    <string name="ble_not_supported">设备不支持蓝牙</string>
+    <string name="scan_type">搜索蓝牙的条件</string>
+</resources>
