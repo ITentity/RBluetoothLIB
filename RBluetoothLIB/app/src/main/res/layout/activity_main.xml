@@ -16,6 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="5dp"
+            android:textSize="20sp"
             android:text="@string/scan"
             android:gravity="center"/>
         <TextView
@@ -23,6 +24,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="5dp"
+            android:textSize="18sp"
             android:text="@string/begin_scan"
             android:gravity="center"/>
     </LinearLayout>
@@ -42,13 +44,66 @@
             android:layout_height="wrap_content"
             android:padding="5dp"
             android:text="@string/connect"
+            android:textSize="20sp"
             android:gravity="center"/>
         <TextView
             android:id="@+id/tv_stop_connect"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="5dp"
+            android:textSize="18sp"
             android:text="@string/stop_connect"
+            android:gravity="center"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:background="@android:color/black"
+            android:layout_height="1dp" />
+        <TextView
+            android:id="@+id/tv_connect"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:textSize="18sp"
+            android:text="@string/start_connect"
+            android:gravity="center"/>
+    </LinearLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:background="@android:color/black"
+        android:layout_height="3dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@android:color/darker_gray">
+        <TextView
+            android:background="@android:color/white"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:textSize="20sp"
+            android:text="@string/device_info"
+            android:gravity="center"/>
+        <TextView
+            android:id="@+id/tv_watch_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:textSize="18sp"
+            android:text="@string/get_watch_id"
+            android:gravity="center"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:background="@android:color/black"
+            android:layout_height="1dp" />
+        <TextView
+            android:id="@+id/tv_device_version"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:textSize="18sp"
+            android:text="@string/get_device_version"
             android:gravity="center"/>
     </LinearLayout>
     <TextView

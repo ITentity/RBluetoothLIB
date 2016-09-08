@@ -6,6 +6,10 @@
     <string name="end_scan">停止</string>
     <string name="connect">连接</string>
     <string name="stop_connect">断开连接</string>
+    <string name="start_connect">重新连接</string>
     <string name="ble_not_supported">设备不支持蓝牙</string>
     <string name="scan_type">搜索蓝牙的条件</string>
+    <string name="device_info">设备信息</string>
+    <string name="get_watch_id">获取watchID</string>
+    <string name="get_device_version">获取版本</string>
 </resources>
