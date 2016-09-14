@@ -3,9 +3,10 @@
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-    <uses-permission-sdk-23 android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application android:allowBackup="true" android:label="@string/app_name"
+        android:name=".globle.BaseApplication"
         android:supportsRtl="true">
         <service android:name=".service.BluetoothService"/>
     </application>

@@ -14,6 +14,10 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.appscomm.library.entity.MyBluetoothDevice;
+import com.appscomm.library.impl.AddDevice;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -24,8 +28,10 @@ public class ScanDevice {
     private BluetoothAdapter bluetoothAdapter;
     private Handler mHandler;
     private Activity context;
+    private AddDevice addDevice;
     private long scanPeriod = 10000l;
     public MyBluetoothDevice mDevice;
+    public List<BluetoothDevice> devices;
     public static final int ADD_DEVICE = 1001;      //扫描到设备增加到集合中
     public static final int STOP_SCAN = 1002;       //停止扫描的标志
 
@@ -35,11 +41,12 @@ public class ScanDevice {
      * @param mHandler              handle
      * @param scanPeriod            扫描时长
      */
-    public ScanDevice(BluetoothAdapter bluetoothAdapter,Handler mHandler,long scanPeriod,Activity context){
+    public ScanDevice(AddDevice addDevice,BluetoothAdapter bluetoothAdapter,Handler mHandler,long scanPeriod,Activity context){
         this.bluetoothAdapter = bluetoothAdapter;
         this.mHandler = mHandler;
         this.scanPeriod = scanPeriod;
         this.context = context;
+        this.addDevice = addDevice;
         MayRequestLocation(context);
     }
 
@@ -74,6 +81,7 @@ public class ScanDevice {
         Log.i("进入扫描","进入扫描");
         // Stops scanning after a pre-defined scan period.
         mHandler.postDelayed(mRunnable, scanPeriod);
+        devices = new ArrayList<BluetoothDevice>();
         bluetoothAdapter.startLeScan(mLeScanCallback);
     }
 
@@ -109,13 +117,14 @@ public class ScanDevice {
     private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
-            Message msg = new Message();
-            msg.what = ADD_DEVICE;
-            mHandler.sendMessage(msg);
-
-            mDevice = new MyBluetoothDevice();
-            mDevice.bluetoothDevice = device;
-            mDevice.rssi = rssi;
+            Log.i("蓝牙的名称3",device.getAddress());
+            if(!devices.contains(device)){              //列表中没有才显示到蓝牙设备列表
+                mDevice = new MyBluetoothDevice();
+                mDevice.bluetoothDevice = device;
+                mDevice.rssi = rssi;
+                addDevice.addDevice(mDevice);
+                devices.add(device);
+            }
         }
 
     };

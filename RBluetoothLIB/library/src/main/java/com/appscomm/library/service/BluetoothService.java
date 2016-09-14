@@ -17,11 +17,10 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.appscomm.library.constant.GloableConstant;
+import com.appscomm.library.globle.MyConstant;
 import com.appscomm.library.util.NumberUtils;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,13 +35,11 @@ public class BluetoothService extends Service {
     private BluetoothAdapter mBluetoothAdapter;             //蓝牙适配器
     private final IBinder mBinder = new LocalBinder();      //Binder
     private BluetoothGatt mBluetoothGatt;                   //蓝牙协议通道
+    private List datas = new ArrayList();                   //返回的数据的中转列表
 
-    private String connectAddress;
-
-    private int mConnectionState = STATE_DISCONNECTED;
-    private static final int STATE_DISCONNECTED = 0;
-    private static final int STATE_CONNECTING = 1;
-    private static final int STATE_CONNECTED = 2;
+    public static final int STATE_DISCONNECTED = 0;
+    public static final int STATE_CONNECTING = 1;
+    public static final int STATE_CONNECTED = 2;
 
     //蓝牙的服务
     private static final UUID UUID_SERVICE = UUID.fromString("00006006-0000-1000-8000-00805f9b34fb");               //蓝牙的通信服务
@@ -105,16 +102,14 @@ public class BluetoothService extends Service {
      *
      */
     public void connect(String address){
+        Log.e(TAG, "连接设备的地址："+address);
         if(TextUtils.isEmpty(address)){
             return;
         }
-        if(!TextUtils.isEmpty(GloableConstant.connectAddress) && GloableConstant.connectAddress.equals(address)){
-            return;             //已经是连接状态
-        }
-        connectAddress = address;
+
         final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
         mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
-        mConnectionState = STATE_CONNECTING;
+        MyConstant.connect_state = STATE_CONNECTING;
     }
 
     /**
@@ -130,7 +125,6 @@ public class BluetoothService extends Service {
         if(null != mBluetoothGatt){
             mBluetoothGatt.disconnect();
         }
-        mConnectionState = STATE_DISCONNECTED;
     }
 
     // Implements callback methods for GATT events that the app cares about.  For example,
@@ -148,16 +142,14 @@ public class BluetoothService extends Service {
             Intent intent = null;
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 Log.e(TAG, "连接设备成功.");
-                mConnectionState = STATE_DISCONNECTED;
-                GloableConstant.connectAddress = connectAddress;    //赋值到全局变量
+                MyConstant.connect_state = STATE_CONNECTED;
                 intent = new Intent(ACTION_GATT_CONNECTED);
                 sendMyBroadcast(intent);
                 gatt.discoverServices();        //扫描蓝牙的服务
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                Log.e(TAG, "设备已断开.");
                 intent = new Intent(ACTION_GATT_DISCONNECTED);
-                GloableConstant.connectAddress = null;    //赋值到全局变量
-                intent.putExtra("address",connectAddress);  //重连时的地址
+                MyConstant.connect_state = STATE_DISCONNECTED;
+                Log.e(TAG, "设备已断开.");
             }
             sendMyBroadcast(intent);
         }
@@ -226,7 +218,7 @@ public class BluetoothService extends Service {
          * @param gatt
          * @param characteristic
          */
-        private String data = "";
+
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
@@ -234,24 +226,13 @@ public class BluetoothService extends Service {
             Log.d(TAG, "read notification Data1:" + NumberUtils.binaryToHexString(abyte0));
             Log.d(TAG, "read notification Data2:" + abyte0[abyte0.length-1]);
             Log.d(TAG, "read notification Data3:" + (byte)0x8f);
-            data+=NumberUtils.binaryToHexString(abyte0);
-            if(abyte0[abyte0.length-1] == (byte)0x8f){          //数据是最后一条发送广播
-                broadcastUpdate(ACTION_DATA_AVAILABLE, data);
-                data = "";
+            for(byte bytt : abyte0){
+                datas.add(bytt);
             }
-
-        }
-
-        /**
-         * @param s             广播
-         * @param data          数据
-         */
-        private void broadcastUpdate(String s, String data) {
-            Log.d(TAG, "最终得到的数据:" + data);
-            Intent intent = new Intent(s);
-            if (!TextUtils.isEmpty(data))
-                intent.putExtra(EXTRA_DATA, data);
-            sendBroadcast(intent);
+            if(abyte0[abyte0.length-1] == (byte)0x8f){          //数据是最后一条发送广播
+                broadcastUpdate(ACTION_DATA_AVAILABLE, datas);
+                datas.clear();                                  //清空列表
+            }
         }
     };
 
@@ -269,6 +250,25 @@ public class BluetoothService extends Service {
     }
 
     /**
+     * @param s             广播
+     * @param datas          数据
+     */
+    private void broadcastUpdate(String s, List datas) {
+        Log.d(TAG, "最终得到的数据:" + datas.size());
+        byte abyte[] = new byte[datas.size()];
+
+        for(int i = 0;i<datas.size();i++){
+            abyte[i] = (byte) datas.get(i);
+        }
+
+        Intent intent = new Intent(s);
+        if (null != abyte && abyte.length>0){
+            intent.putExtra(EXTRA_DATA, abyte);
+        }
+        sendBroadcast(intent);
+    }
+
+    /**
      *
      * author zhaozx
      * email zhaozhenxiang@appscomm.cn
@@ -278,6 +278,7 @@ public class BluetoothService extends Service {
      *
      */
     public void sendOrder2Device(byte[] bytes){
+        datas.clear();      //发送数据时重置收到的数据
         BluetoothGattCharacteristic bluetoothgattcharacteristic = null;
         try {
             List<BluetoothGattService> services = mBluetoothGatt.getServices();
@@ -293,7 +294,6 @@ public class BluetoothService extends Service {
 
         try {
             //向设备发送命令（会回调向设备写的方法）
-            Toast.makeText(BluetoothService.this,"发送数据",Toast.LENGTH_SHORT).show();
             mBluetoothGatt.writeCharacteristic(bluetoothgattcharacteristic);
         } catch (Exception e) {
             e.printStackTrace();

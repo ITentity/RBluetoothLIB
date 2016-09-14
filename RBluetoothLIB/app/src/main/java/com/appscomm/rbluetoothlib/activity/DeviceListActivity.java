@@ -29,6 +29,8 @@ import android.widget.Toast;
 import com.appscomm.library.adapter.MyAdapter;
 import com.appscomm.library.controller.ScanDevice;
 import com.appscomm.library.entity.MyBluetoothDevice;
+import com.appscomm.library.globle.MyConstant;
+import com.appscomm.library.impl.AddDevice;
 import com.appscomm.library.service.BluetoothService;
 import com.appscomm.library.util.BluetoothUtils;
 import com.appscomm.library.util.DialogUtil;
@@ -44,7 +46,7 @@ import butterknife.OnClick;
 /**
  * Created by zhaozx on 2016/9/1.
  */
-public class DeviceListActivity extends Activity implements AdapterView.OnItemClickListener{
+public class DeviceListActivity extends Activity implements AdapterView.OnItemClickListener,AddDevice {
 
     String TAG = this.getClass().getSimpleName().toString();
 
@@ -62,9 +64,10 @@ public class DeviceListActivity extends Activity implements AdapterView.OnItemCl
     private MyAdapter myAdapter;               //适配器
     private String content = "";                    //过滤的内容
     private List<MyBluetoothDevice> devices = new ArrayList<>();               //蓝牙设备的列表
+    private ProgressDialog progressDialog;                  //进度条
+    int count = 0;
     private BluetoothService bluetoothService;                                 //蓝牙服务
-    private int count = 0;                                                     //蓝牙重连的次数
-    private ProgressDialog progressDialog;
+    private BluetoothUtils bluetoothUtils = BluetoothUtils.getBluetoothUtils(); //蓝牙的工具类
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,28 +80,13 @@ public class DeviceListActivity extends Activity implements AdapterView.OnItemCl
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
                 switch (msg.what) {
-                    case ScanDevice.ADD_DEVICE:
-                        if(null != scanDevice.mDevice){
-                            Log.i("过滤的内容",content);
-                            if(!devices.contains(scanDevice.mDevice)){
-                                if(TextUtils.isEmpty(content)){
-                                    devices.add(scanDevice.mDevice);
-                                }else if(!TextUtils.isEmpty(scanDevice.mDevice.bluetoothDevice.getName()) && scanDevice.mDevice.bluetoothDevice.getName().contains(content)){
-                                    Log.i("蓝牙的名称",scanDevice.mDevice.bluetoothDevice.getName());
-                                    devices.add(scanDevice.mDevice);
-
-                                }
-                            }
-                            myAdapter.notifyDataSetChanged();
-                        }
-                        break;
-                    case ScanDevice.STOP_SCAN:
+                    case ScanDevice.STOP_SCAN:              //停止扫描
                         isScan = false;
                         btScanOrStopscan.setText(getString(R.string.star_scan));
                 }
             }
         };
-        scanDevice = new ScanDevice(mBluetoothAdapter, mhandler, 10000l,this);      //初始化扫描对象
+        scanDevice = new ScanDevice(this,mBluetoothAdapter, mhandler, 10000l,this);      //初始化扫描对象
         initmyAdapter();                    //初始化适配器
         lvDevices.setAdapter(myAdapter);
         lvDevices.setOnItemClickListener(this);
@@ -117,6 +105,7 @@ public class DeviceListActivity extends Activity implements AdapterView.OnItemCl
         startOrStopScan();        //开启或关闭扫描
     }
 
+
     //广播接受者的回调
     private BroadcastReceiver gattConnectReceiver = new BroadcastReceiver() {
         @Override
@@ -124,20 +113,20 @@ public class DeviceListActivity extends Activity implements AdapterView.OnItemCl
             String action = intent.getAction();
             if(BluetoothService.ACTION_GATT_CONNECTED.equals(action)){
                 //蓝牙已经连接可以关掉扫描页面
-                DialogUtil.hideProgressDialog(progressDialog);
+                DialogUtil.hideProgressDialog();
                 Toast.makeText(DeviceListActivity.this,"连接成功",Toast.LENGTH_SHORT).show();
                 finish();
             }else if(BluetoothService.ACTION_GATT_DISCONNECTED.equals(action)){
                 //蓝牙连接不成功,重连（最多重连三次）
-                String address = intent.getStringExtra("address");      //得到重连的地址（为上次连接失败的地址）
                 if(count<3){
                     BluetoothUtils.startBluetooth(DeviceListActivity.this, mBluetoothAdapter, REQUEST_ENABLE_BT);
-                    bluetoothService.connect(address);
+                    bluetoothService.connect(MyConstant.address);
                     count++;
                 }else{
-                    DialogUtil.hideProgressDialog(progressDialog);
+                    DialogUtil.hideProgressDialog();
                     Toast.makeText(DeviceListActivity.this,"连接失败",Toast.LENGTH_SHORT).show();
                 }
+                DialogUtil.hideProgressDialog();
             }
         }
     };
@@ -166,6 +155,14 @@ public class DeviceListActivity extends Activity implements AdapterView.OnItemCl
             bluetoothService = null;
         }
     };
+
+    private static IntentFilter makeGattUpdateIntentFilter() {
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(BluetoothService.ACTION_GATT_DISCONNECTED);
+        return intentFilter;
+    }
+
 
     /**
      *
@@ -258,20 +255,32 @@ public class DeviceListActivity extends Activity implements AdapterView.OnItemCl
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-        if(null != bluetoothService){
-            isScan = true;
-            startOrStopScan();      //点击连接时取消扫描
-            BluetoothUtils.startBluetooth(DeviceListActivity.this, mBluetoothAdapter, REQUEST_ENABLE_BT);
-            progressDialog = new ProgressDialog(DeviceListActivity.this);
-            DialogUtil.showProgressDialog(DeviceListActivity.this,progressDialog,"连接中...");
-            bluetoothService.connect(devices.get(position).bluetoothDevice.getAddress());
-        }
+        isScan = true;
+        startOrStopScan();      //点击连接时取消扫描
+        BluetoothUtils.startBluetooth(DeviceListActivity.this, mBluetoothAdapter, REQUEST_ENABLE_BT);
+        progressDialog = new ProgressDialog(DeviceListActivity.this);
+        DialogUtil.showProgressDialog(DeviceListActivity.this,progressDialog,"连接中...");
+        bluetoothUtils.connect(devices.get(position).bluetoothDevice.getAddress());
+        //点击后就将地址赋值给全局变量
+        MyConstant.address = devices.get(position).bluetoothDevice.getAddress();
+
     }
 
-    private static IntentFilter makeGattUpdateIntentFilter() {
-        final IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(BluetoothService.ACTION_GATT_CONNECTED);
-        intentFilter.addAction(BluetoothService.ACTION_GATT_DISCONNECTED);
-        return intentFilter;
+    /**
+     * 增加设备到列表
+     * @param myBluetoothDevice
+     */
+    @Override
+    public void addDevice(MyBluetoothDevice myBluetoothDevice) {
+        if(null != myBluetoothDevice){
+
+            if(TextUtils.isEmpty(content)){
+                devices.add(myBluetoothDevice);
+            }else if(!TextUtils.isEmpty(myBluetoothDevice.bluetoothDevice.getName()) && myBluetoothDevice.bluetoothDevice.getName().contains(content)){
+                devices.add(myBluetoothDevice);
+            }
+            myAdapter.notifyDataSetChanged();
+
+        }
     }
 }
