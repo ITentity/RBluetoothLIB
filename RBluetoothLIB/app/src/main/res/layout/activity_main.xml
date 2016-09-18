@@ -105,6 +105,30 @@
             android:textSize="18sp"
             android:text="@string/get_device_version"
             android:gravity="center"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:background="@android:color/black"
+            android:layout_height="1dp" />
+        <TextView
+            android:id="@+id/tv_device_date_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:textSize="18sp"
+            android:text="@string/device_date_time"
+            android:gravity="center"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:background="@android:color/black"
+            android:layout_height="1dp" />
+        <TextView
+            android:id="@+id/tv_set_device_date_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:textSize="18sp"
+            android:text="@string/set_device_date_time"
+            android:gravity="center"/>
     </LinearLayout>
     <TextView
         android:layout_width="match_parent"

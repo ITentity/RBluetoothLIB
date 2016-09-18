@@ -278,6 +278,7 @@ public class BluetoothService extends Service {
      *
      */
     public void sendOrder2Device(byte[] bytes){
+        Log.d(TAG, "发送的数据为" + NumberUtils.binaryToHexString(bytes));
         datas.clear();      //发送数据时重置收到的数据
         BluetoothGattCharacteristic bluetoothgattcharacteristic = null;
         try {

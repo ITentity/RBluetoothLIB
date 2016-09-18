@@ -114,7 +114,6 @@ public class DeviceListActivity extends Activity implements AdapterView.OnItemCl
             if(BluetoothService.ACTION_GATT_CONNECTED.equals(action)){
                 //蓝牙已经连接可以关掉扫描页面
                 DialogUtil.hideProgressDialog();
-                Toast.makeText(DeviceListActivity.this,"连接成功",Toast.LENGTH_SHORT).show();
                 finish();
             }else if(BluetoothService.ACTION_GATT_DISCONNECTED.equals(action)){
                 //蓝牙连接不成功,重连（最多重连三次）

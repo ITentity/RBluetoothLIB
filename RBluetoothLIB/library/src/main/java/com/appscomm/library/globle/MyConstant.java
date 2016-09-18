@@ -8,4 +8,5 @@ public class MyConstant {
     public static boolean is_auto_connect = true;   //是否需要自动去连接蓝牙，用于连接蓝牙失败后时候重连3次
     public static String version_no;                //获取到的版本号
     public static int connect_state;                //获取到的版本号
+    public static String device_date_time;                //获取到的版本号
 }

@@ -12,4 +12,6 @@
     <string name="device_info">设备信息</string>
     <string name="get_watch_id">获取watchID</string>
     <string name="get_device_version">获取版本</string>
+    <string name="device_date_time">获取设备日期时间</string>
+    <string name="set_device_date_time">设置设备日期时间</string>
 </resources>

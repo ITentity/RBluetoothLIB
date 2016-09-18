@@ -12,4 +12,6 @@
     <string name="device_info">deviceInfo</string>
     <string name="get_watch_id">get watchID</string>
     <string name="get_device_version">get device version</string>
+    <string name="device_date_time">get device datetime</string>
+    <string name="set_device_date_time">set device datetime</string>
 </resources>

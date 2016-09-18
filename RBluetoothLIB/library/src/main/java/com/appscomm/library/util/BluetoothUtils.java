@@ -10,11 +10,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.appscomm.library.globle.BaseApplication;
 import com.appscomm.library.globle.MyConstant;
+import com.appscomm.library.impl.Result;
 import com.appscomm.library.protocol.parent.Leaf;
 import com.appscomm.library.service.BluetoothService;
 
@@ -27,6 +29,7 @@ public class BluetoothUtils {
     private BluetoothService bluetoothService;          //蓝牙服务
     private int count = 0;                                  //重连的次数
     private Leaf leaf;                                      //协议的父类
+    private Result result;                                  //结果的回调
 
     //蓝牙的连接状态值
     public static final int STATE_DISCONNECTED = 0;
@@ -102,7 +105,7 @@ public class BluetoothUtils {
                     DialogUtil.hideProgressDialog();
                 }
             }else if(BluetoothService.ACTION_DATA_AVAILABLE.equals(action)){
-                Toast.makeText(context,leaf.parse(intent.getByteArrayExtra(bluetoothService.EXTRA_DATA)),Toast.LENGTH_SHORT).show();
+                result.getResult(leaf.parse(intent.getByteArrayExtra(bluetoothService.EXTRA_DATA)));
             }
         }
     };
@@ -137,6 +140,14 @@ public class BluetoothUtils {
         }
     }
 
+    //蓝牙是否连接
+    public boolean isConnect(Context context){
+        if(MyConstant.connect_state != STATE_CONNECTED){
+            Toast.makeText(context,"蓝牙未连接",Toast.LENGTH_SHORT).show();
+        }
+        return MyConstant.connect_state == STATE_CONNECTED;
+    }
+
     //连接蓝牙
     public void connect(String address){
         if(null != bluetoothService){
@@ -151,7 +162,8 @@ public class BluetoothUtils {
         }
     }
 
-    public void sendOrder2Device(Leaf leaf){
+    public void sendOrder2Device(Result result,Leaf leaf){
+        this.result = result;
         this.leaf = leaf;
         leaf.send(bluetoothService);
     }

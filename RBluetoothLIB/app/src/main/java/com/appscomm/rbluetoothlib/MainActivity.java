@@ -10,10 +10,14 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import com.appscomm.library.globle.MyConstant;
+import com.appscomm.library.impl.Result;
+import com.appscomm.library.protocol.QueryDateTime;
+import com.appscomm.library.protocol.SetDateTime;
 import com.appscomm.library.protocol.VersionNo;
 import com.appscomm.library.protocol.WatchID;
 import com.appscomm.library.service.BluetoothService;
@@ -23,7 +27,7 @@ import com.appscomm.rbluetoothlib.activity.DeviceListActivity;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Result{
     private BluetoothAdapter mBluetoothAdapter;
     private static final int REQUEST_ENABLE_BT = 1;
     private BluetoothUtils bluetoothUtils = BluetoothUtils.getBluetoothUtils();     //蓝牙的帮助类
@@ -56,7 +60,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    @OnClick({R.id.tv_begin_scan, R.id.tv_stop_connect, R.id.tv_connect, R.id.tv_watch_id, R.id.tv_device_version})
+    @OnClick({R.id.tv_begin_scan, R.id.tv_stop_connect, R.id.tv_connect, R.id.tv_watch_id, R.id.tv_device_version,
+            R.id.tv_device_date_time,R.id.tv_set_device_date_time})
     public void onClick(View view) {
         Intent intent = new Intent();
         BluetoothUtils.startBluetooth(MainActivity.this, mBluetoothAdapter, REQUEST_ENABLE_BT);         //在任何蓝牙操作前都确定蓝牙的状态
@@ -79,16 +84,33 @@ public class MainActivity extends AppCompatActivity {
                         DialogUtil.showProgressDialog(MainActivity.this,new ProgressDialog(MainActivity.this),"连接中。。。");
                     }
                 }else{
-                    //暂时不加提示
+                    Toast.makeText(this,"未连接过蓝牙",Toast.LENGTH_SHORT).show();
+
                 }
                 break;
             case R.id.tv_watch_id:          //获取watchID
-                bluetoothUtils.sendOrder2Device(new WatchID());
-                DialogUtil.showProgressDialog(MainActivity.this,new ProgressDialog(MainActivity.this),"获取中。。。");
+                if(bluetoothUtils.isConnect(MainActivity.this)){
+                    bluetoothUtils.sendOrder2Device(MainActivity.this, new WatchID());
+                    DialogUtil.showProgressDialog(MainActivity.this, new ProgressDialog(MainActivity.this), "获取中。。。");
+                }
                 break;
             case R.id.tv_device_version:    //获取版本
-                bluetoothUtils.sendOrder2Device(new VersionNo());
-                DialogUtil.showProgressDialog(MainActivity.this,new ProgressDialog(MainActivity.this),"获取中。。。");
+                if(bluetoothUtils.isConnect(MainActivity.this)) {
+                    bluetoothUtils.sendOrder2Device(MainActivity.this,new VersionNo());
+                    DialogUtil.showProgressDialog(MainActivity.this, new ProgressDialog(MainActivity.this), "获取中。。。");
+                }
+                break;
+            case R.id.tv_device_date_time:    //获取版本
+                if(bluetoothUtils.isConnect(MainActivity.this)) {
+                    bluetoothUtils.sendOrder2Device(MainActivity.this,new QueryDateTime());
+                    DialogUtil.showProgressDialog(MainActivity.this, new ProgressDialog(MainActivity.this), "获取中。。。");
+                }
+                break;
+            case R.id.tv_set_device_date_time:    //获取版本
+                if(bluetoothUtils.isConnect(MainActivity.this)) {
+                    bluetoothUtils.sendOrder2Device(MainActivity.this,new SetDateTime(2016,9,18,19,24,11));
+                    DialogUtil.showProgressDialog(MainActivity.this, new ProgressDialog(MainActivity.this), "获取中。。。");
+                }
                 break;
         }
     }
@@ -109,5 +131,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         bluetoothUtils.unBindServiceAndOnRegister();
+    }
+
+    @Override
+    public void getResult(String result) {
+        Log.i("获取到的result",result);
+        DialogUtil.hideProgressDialog();
+        Toast.makeText(this,result,Toast.LENGTH_SHORT).show();
     }
 }
